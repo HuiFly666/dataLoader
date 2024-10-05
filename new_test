@@ -1,0 +1,49 @@
+from sklearn.metrics import precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix, balanced_accuracy_score
+
+def test(model, test_loader, device):
+    model.eval()  # 设置模型为评估模式
+    correct = 0
+    total = 0
+
+    y_true = []  # 存储真实标签
+    y_pred = []  # 存储预测标签
+
+    with torch.no_grad():  # 不需要计算梯度
+        for data, targets in test_loader:
+            data, targets = data.to(device), targets.to(device).float()
+
+            # 初始化隐藏状态
+            hidden = model.init_hidden(data.size(0))
+
+            # 前向传播
+            outputs, hidden = model(data, hidden)
+
+            # 将输出转换为 0 或 1
+            predicted = (outputs >= 0.5).float()  # 阈值 0.5
+
+            total += targets.size(0)
+            correct += (predicted.squeeze() == targets).sum().item()  # 统计正确的预测
+
+            # 将结果保存到列表中，转为CPU的numpy格式
+            y_true.extend(targets.cpu().numpy())
+            y_pred.extend(predicted.cpu().numpy())
+
+    # 计算准确率
+    accuracy = 100 * correct / total
+    print(f'Accuracy of the model on the test set: {accuracy:.2f}%')
+
+    # 使用 scikit-learn 计算其他指标
+    precision = precision_score(y_true, y_pred)
+    recall = recall_score(y_true, y_pred)
+    f1 = f1_score(y_true, y_pred)
+    roc_auc = roc_auc_score(y_true, y_pred)
+    conf_matrix = confusion_matrix(y_true, y_pred)
+    balanced_acc = balanced_accuracy_score(y_true, y_pred)
+
+    # 输出计算结果
+    print(f'Precision: {precision:.4f}')
+    print(f'Recall: {recall:.4f}')
+    print(f'F1 Score: {f1:.4f}')
+    print(f'ROC AUC: {roc_auc:.4f}')
+    print(f'Confusion Matrix:\n{conf_matrix}')
+    print(f'Balanced Accuracy: {balanced_acc:.4f}')
