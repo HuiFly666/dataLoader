@@ -1,0 +1,60 @@
+def test(model, test_loader, metrics_history):  
+    model.eval()  # 设置模型为评估模式  
+
+    y_true = []  # 存储真实标签  
+    y_pred = []  # 存储预测标签  
+    total_loss = 0  # 累计测试损失  
+
+    # 开始记录测试时间  
+    start_time = time.time()  
+
+    with torch.no_grad():  # 不需要计算梯度  
+        for data, labels in test_loader:  
+            # 将数据和标签移动到设备  
+            data, labels = data.to(device), labels.to(device)  
+
+            # 前向传播  
+            outputs = model(data)  # 如果是 CNN, 则不需要 hidden 状态  
+
+            # 计算损失  
+            loss = criterion(outputs, labels.unsqueeze(1))  # 确保labels的形状与outputs一致  
+            total_loss += loss.item()  # 累加损失  
+
+            # 将输出转换为 0 或 1  
+            predicted = (outputs >= 0.5).float()  # 阈值 0.5  
+
+            # 将结果保存到列表中，转为cpu的numpy格式  
+            y_true.extend(labels.cpu().numpy())  
+            y_pred.extend(predicted.cpu().numpy())  
+
+    # 计算测试时间  
+    test_time = time.time() - start_time  
+
+    # 计算各种指标，使用 zero_division=0 以避免除以零错误  
+    accuracy = accuracy_score(y_true, y_pred)  
+    avg_loss = total_loss / len(test_loader)  
+    precision = precision_score(y_true, y_pred, zero_division=0)  
+    recall = recall_score(y_true, y_pred, zero_division=0)  
+    f1 = f1_score(y_true, y_pred, zero_division=0)  
+    roc_auc = roc_auc_score(y_true, y_pred) if len(set(y_true)) > 1 else 0  # 保证有正例和负例  
+    balanced_acc = balanced_accuracy_score(y_true, y_pred)  
+
+    # 将指标保存到 metrics_history 中  
+    metrics_history['test_accuracy'].append(accuracy * 100)  
+    metrics_history['test_loss'].append(avg_loss)  # 保存平均损失  
+    metrics_history['precision'].append(precision)  
+    metrics_history['recall'].append(recall)  
+    metrics_history['f1'].append(f1)  
+    metrics_history['roc_auc'].append(roc_auc)  
+    metrics_history['balanced_accuracy'].append(balanced_acc)  
+
+    # 输出结果  
+    print(f'average_loss_test: {avg_loss:.4f}')  
+    print(f'accuracy_test: {accuracy:.4f}')  
+    print(f'precision: {precision:.4f}')  
+    print(f'recall: {recall:.4f}')  
+    print(f'f1 score: {f1:.4f}')  
+    print(f'roc auc: {roc_auc:.4f}')  
+    print(f'balanced accuracy: {balanced_acc:.4f}')  
+
+    return test_time  # 返回测试时间  
