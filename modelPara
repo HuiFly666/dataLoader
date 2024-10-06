@@ -1,0 +1,30 @@
+import torch  
+
+# 设置设备  
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  
+
+# CNN模型参数  
+n_feature = 168  # 输入特征数  
+out_feature = 1  # 输出特征数 (例如二分类问题可以是 1)  
+kernel_size = 3  # 卷积核大小  
+n_filters = 64   # 卷积层中的过滤器数  
+drop_prob = 0.5  # Dropout 概率  
+
+# 实例化 CNN 模型并移动到适当设备  
+model = AudioCNN(  
+    n_feature=n_feature,  
+    out_feature=out_feature,  
+    kernel_size=kernel_size,  
+    n_filters=n_filters,  
+    drop_prob=drop_prob  
+).to(device)  
+
+# 可选：定义权重初始化函数（如果需要）  
+def init_weights(m):  
+    if isinstance(m, torch.nn.Conv2d) or isinstance(m, torch.nn.Linear):  
+        torch.nn.init.xavier_uniform_(m.weight.data)  
+        if m.bias is not None:  
+            m.bias.data.fill_(0)  
+
+# 应用初始化  
+model.apply(init_weights)
