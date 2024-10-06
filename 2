@@ -1,0 +1,24 @@
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+def plot_confusion_matrix(y_true, y_pred, class_names):
+    # 生成混淆矩阵
+    cm = confusion_matrix(y_true, y_pred)
+    
+    # 使用 seaborn 绘制热力图
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=class_names, yticklabels=class_names)
+    
+    # 添加图像标题和标签
+    plt.title('Confusion Matrix')
+    plt.xlabel('Predicted Label')
+    plt.ylabel('True Label')
+    
+    # 显示图像
+    plt.tight_layout()
+    plt.show()
+
+# 假设类别名称是 'Negative' 和 'Positive'
+class_names = ['Negative', 'Positive']
+plot_confusion_matrix(y_true, y_pred, class_names)
