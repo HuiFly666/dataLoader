@@ -1,0 +1,14 @@
+# 获取时间维度
+mel_time = mel_specgram_norm.shape[-1]
+mfcc_time = mfcc_norm.shape[-1]
+
+# 如果时间维度不一致，进行填充
+if mel_time < mfcc_time:
+    padding = (0, mfcc_time - mel_time)  # 在末尾填充
+    mel_specgram_norm = torch.nn.functional.pad(mel_specgram_norm, padding)
+elif mfcc_time < mel_time:
+    padding = (0, mel_time - mfcc_time)  # 在末尾填充
+    mfcc_norm = torch.nn.functional.pad(mfcc_norm, padding)
+
+# 特征拼接
+feature = torch.cat([mel_specgram_norm, mfcc_norm], dim=1)
