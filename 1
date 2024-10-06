@@ -1,0 +1,30 @@
+import torch
+import numpy as np
+
+# 确保模型处于评估模式
+model.eval()
+
+# 定义两个列表来存储真实标签和预测结果
+y_true = []
+y_pred = []
+
+# 禁用梯度计算以提高预测速度
+with torch.no_grad():
+    for inputs, labels in test_loader:
+        # 将数据移动到与模型相同的设备上（例如 GPU）
+        inputs = inputs.to(device)
+        labels = labels.to(device)
+        
+        # 模型进行预测
+        outputs = model(inputs)
+        
+        # 对于分类任务，通常使用 softmax 或直接比较 logits 获取预测标签
+        _, predicted = torch.max(outputs, 1)
+        
+        # 保存真实标签和预测结果
+        y_true.extend(labels.cpu().numpy())  # 将标签移到 CPU 并转换为 numpy 数组
+        y_pred.extend(predicted.cpu().numpy())  # 同样处理预测结果
+
+# 转换为 numpy 数组以便于后续使用
+y_true = np.array(y_true)
+y_pred = np.array(y_pred)
