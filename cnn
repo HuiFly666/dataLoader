@@ -1,0 +1,39 @@
+import torch  
+import torchaudio  
+from torch.utils.data import Dataset  
+
+# 自定义数据集  
+class AudioDataset(Dataset):  
+    def __init__(self, audio_files, labels):  
+        self.audio_files = audio_files  
+        self.labels = labels  # 使用目标标签  
+
+    def __len__(self):  
+        return len(self.audio_files)  
+
+    def __getitem__(self, idx):  
+        # 加载音频文件  
+        waveform, sample_rate = torchaudio.load(self.audio_files[idx])  
+
+        # pad_or_trim_waveform 函数假定已定义，需保证波形的长度  
+        waveform = pad_or_trim_waveform(waveform, sample_rate * 12)  # 例如处理到12秒  
+        # 提取梅尔频谱图  
+        mel_specgram = torchaudio.transforms.MelSpectrogram(sample_rate)(waveform)  
+
+        # 梅尔频谱图的标准化  
+        mel_specgram_norm = (mel_specgram - mel_specgram.mean()) / mel_specgram.std()  
+        
+        # 调整为模型输入所需的格式  
+        # 从 (channels, n_mels, time) 到 (batch_size, channels, height, width)  
+        # 这里假设 mel_specgram_norm 是 (1, n_mels, time)，并添加 batch_size 维度  
+        feature = mel_specgram_norm.unsqueeze(0)  # (1, 1, n_mels, time)  
+
+        # 返回特征和标签  
+        return feature, self.labels[idx]  
+
+# 示例用法  
+# 假设有音频文件路径和相应标签  
+audio_files = ['path/to/audio1.wav', 'path/to/audio2.wav']  
+labels = [0, 1]  # 对应每个音频的标签  
+
+dataset = AudioDataset(audio_files, labels)
